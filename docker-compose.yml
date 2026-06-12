@@ -8,8 +8,8 @@ services:
       - ./data:/app/data
     restart: unless-stopped
     networks:
-      - nginx-net
+      - web
 
 networks:
-  nginx-net:
-    external: true   # ganti "nginx-net" dengan nama network nginx kamu (cek: docker network ls)
+  web:
+    external: true
