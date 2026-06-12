@@ -22,8 +22,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS sensor_readings (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     device_code TEXT NOT NULL,
-    water_level REAL,
-    temperature REAL,
+    suhu_luar   REAL,
+    suhu_dalam  REAL,
+    kelembapan  REAL,
     recorded_at DATETIME NOT NULL,
     FOREIGN KEY (device_code) REFERENCES devices(device_code)
   );
@@ -36,8 +37,8 @@ db.exec(`
 const seedDevice = db.prepare(
   `INSERT OR IGNORE INTO devices (device_code, name, location, is_dummy) VALUES (?, ?, ?, 1)`
 );
-seedDevice.run('DUMMY-001', 'Sensor Dummy 1', 'Kolam Utara');
-seedDevice.run('DUMMY-002', 'Sensor Dummy 2', 'Kolam Selatan');
-seedDevice.run('DUMMY-003', 'Sensor Dummy 3', 'Kolam Timur');
+seedDevice.run('DUMMY-001', 'Sensor Dummy 1', 'Ruangan A');
+seedDevice.run('DUMMY-002', 'Sensor Dummy 2', 'Ruangan B');
+seedDevice.run('DUMMY-003', 'Sensor Dummy 3', 'Ruangan C');
 
 module.exports = db;
