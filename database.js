@@ -33,12 +33,8 @@ db.exec(`
     ON sensor_readings(device_code, recorded_at DESC);
 `);
 
-// Seed 3 dummy devices (idempotent)
-const seedDevice = db.prepare(
-  `INSERT OR IGNORE INTO devices (device_code, name, location, is_dummy) VALUES (?, ?, ?, 1)`
-);
-seedDevice.run('DUMMY-001', 'Sensor Dummy 1', 'Ruangan A');
-seedDevice.run('DUMMY-002', 'Sensor Dummy 2', 'Ruangan B');
-seedDevice.run('DUMMY-003', 'Sensor Dummy 3', 'Ruangan C');
+// Hapus device dummy jika masih ada di DB
+db.prepare(`DELETE FROM sensor_readings WHERE device_code IN ('DUMMY-001','DUMMY-002','DUMMY-003')`).run();
+db.prepare(`DELETE FROM devices WHERE is_dummy = 1`).run();
 
 module.exports = db;
