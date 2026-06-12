@@ -1,0 +1,15 @@
+services:
+  kopi-dashboard:
+    build: .
+    container_name: kopi-dashboard
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - nginx-net
+
+networks:
+  nginx-net:
+    external: true   # ganti "nginx-net" dengan nama network nginx kamu (cek: docker network ls)

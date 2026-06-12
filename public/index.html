@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kopi Monitor Dashboard</title>
+  <base href="/kopi/">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #0f172a; --surface: #1e293b; --surface2: #263148;
+      --border:  #334155; --muted:   #64748b; --text:    #e2e8f0;
+      --blue:    #38bdf8; --teal:    #2dd4bf; --orange:  #fb923c;
+      --green:   #22c55e; --red:     #ef4444; --yellow:  #facc15;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── Header ─────────────────────────────────── */
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 12px 24px; display: flex; justify-content: space-between;
+      align-items: center; position: sticky; top: 0; z-index: 20;
+    }
+    .h-logo { display: flex; align-items: center; gap: 10px; }
+    .h-logo svg { width: 22px; height: 22px; }
+    header h1 { font-size: 1rem; font-weight: 700; letter-spacing: .02em; }
+    .h-right { display: flex; align-items: center; gap: 10px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: blink 1.4s infinite; }
+    .status-dot.off { background: var(--red); animation: none; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+    .badge { font-size: .68rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+    .badge.live    { background: var(--green); color: #fff; }
+    .badge.offline { background: var(--red);   color: #fff; }
+    .badge.wait    { background: var(--muted);  color: #fff; }
+
+    /* ── Device Tabs ─────────────────────────────── */
+    .tab-bar {
+      background: #0d1526; border-bottom: 1px solid var(--border);
+      padding: 0 24px; display: flex; align-items: center; gap: 4px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab {
+      padding: 12px 16px; font-size: .8rem; font-weight: 600;
+      color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+      white-space: nowrap; transition: color .15s, border-color .15s;
+      display: flex; align-items: center; gap: 6px; user-select: none; -webkit-user-select: none;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab .badge-dummy {
+      font-size: .6rem; padding: 1px 5px; border-radius: 4px;
+      background: rgba(100,116,139,.3); color: var(--muted);
+    }
+    .tab .badge-real {
+      font-size: .6rem; padding: 1px 5px; border-radius: 4px;
+      background: rgba(34,197,94,.15); color: var(--green);
+    }
+
+    /* ── Main ────────────────────────────────────── */
+    .container { max-width: 1280px; margin: 0 auto; padding: 20px 24px; }
+
+    /* ── Cards ───────────────────────────────────── */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+    @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 20px;
+    }
+    .card-label { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
+    .card-value { font-size: 2.4rem; font-weight: 700; line-height: 1; }
+    .card-unit  { font-size: .85rem; color: var(--muted); margin-left: 3px; }
+    .card-sub   { font-size: .72rem; color: var(--muted); margin-top: 6px; }
+    .c-blue .card-value   { color: var(--blue); }
+    .c-teal .card-value   { color: var(--teal); }
+    .c-orange .card-value { color: var(--orange); }
+
+    /* ── Charts Row ──────────────────────────────── */
+    .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 20px; }
+    @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
+    .section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 20px;
+    }
+    .stitle {
+      font-size: .7rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .07em; margin-bottom: 14px;
+    }
+    canvas { display: block; width: 100% !important; }
+
+    /* ── Gauge Bars ──────────────────────────────── */
+    .gauges { display: flex; flex-direction: column; gap: 20px; justify-content: center; height: calc(100% - 30px); }
+    .gauge-label { font-size: .72rem; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .gauge-label span:last-child { color: var(--text); font-weight: 600; }
+    .gauge-bar  { height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .gauge-fill { height: 100%; border-radius: 999px; transition: width .5s ease; }
+
+    /* ── Table ───────────────────────────────────── */
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .table-header .stitle { margin-bottom: 0; }
+    .btn-csv {
+      background: #16a34a; color: #fff; border: none;
+      padding: 7px 16px; border-radius: 8px; cursor: pointer;
+      font-size: .78rem; font-weight: 700; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-csv:hover { background: #15803d; }
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    thead th {
+      text-align: left; padding: 9px 14px; color: var(--muted);
+      font-weight: 600; font-size: .7rem; text-transform: uppercase;
+      letter-spacing: .06em; border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    tbody td { padding: 9px 14px; border-bottom: 1px solid #0f172a; white-space: nowrap; }
+    tbody tr:hover td { background: rgba(15,23,42,.5); }
+    tbody tr:last-child td { border-bottom: none; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 600; }
+    .pill.blue   { background: rgba(56,189,248,.15);  color: var(--blue); }
+    .pill.teal   { background: rgba(45,212,191,.15);  color: var(--teal); }
+    .pill.orange { background: rgba(251,146,60,.15);  color: var(--orange); }
+
+    /* ── Device Summary Strip ────────────────────── */
+    .device-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
+    @media (max-width: 640px) { .device-strip { grid-template-columns: 1fr; } }
+    .dev-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    .dev-card:hover { border-color: var(--blue); }
+    .dev-card.active { border-color: var(--blue); background: var(--surface2); }
+    .dev-name { font-size: .82rem; font-weight: 700; margin-bottom: 4px; }
+    .dev-loc  { font-size: .68rem; color: var(--muted); margin-bottom: 8px; }
+    .dev-vals { display: flex; gap: 12px; }
+    .dev-val  { font-size: .78rem; }
+    .dev-val span { font-weight: 700; }
+
+    .footer {
+      font-size: .72rem; color: var(--muted);
+      display: flex; justify-content: space-between;
+      flex-wrap: wrap; gap: 6px; margin-top: 20px;
+    }
+    .empty { color: var(--muted); text-align: center; padding: 32px; font-size: .85rem; }
+
+    .topbar {
+      background: #0d1526; border-bottom: 1px solid var(--border);
+      padding: 8px 24px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .topbar label { font-size: .78rem; color: var(--muted); }
+    select.isel {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); padding: 5px 10px; border-radius: 8px;
+      font-size: .78rem; outline: none; cursor: pointer;
+    }
+    .topbar .info { font-size: .72rem; color: var(--muted); margin-left: auto; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="h-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2C6 2 2 7 2 12c0 4 2.5 7 6 8.5V22h8v-1.5C19.5 19 22 16 22 12c0-5-4-10-10-10z"/>
+      <path d="M12 6v6l4 2"/>
+    </svg>
+    <h1>&#9749; Kopi &mdash; Sensor Dashboard</h1>
+  </div>
+  <div class="h-right">
+    <div class="status-dot" id="dot"></div>
+    <span class="badge wait" id="badge">MEMUAT...</span>
+  </div>
+</header>
+
+<div class="topbar">
+  <label>Refresh:</label>
+  <select class="isel" id="isel" title="Interval refresh" onchange="changeInterval()">
+    <option value="10000">10 detik</option>
+    <option value="30000" selected>30 detik</option>
+    <option value="60000">1 menit</option>
+  </select>
+  <span class="info" id="info">Menghubungkan...</span>
+</div>
+
+<!-- Device quick-pick strip -->
+<div class="container" style="padding-bottom:0">
+  <div class="device-strip" id="device-strip"></div>
+</div>
+
+<div class="container">
+
+  <div class="cards">
+    <div class="card c-blue">
+      <div class="card-label">Water Level (Jarak Sensor)</div>
+      <div><span class="card-value" id="v-wl">--</span><span class="card-unit">cm</span></div>
+      <div class="card-sub" id="sub-wl">&nbsp;</div>
+    </div>
+    <div class="card c-teal">
+      <div class="card-label">Suhu</div>
+      <div><span class="card-value" id="v-temp">--</span><span class="card-unit">°C</span></div>
+      <div class="card-sub" id="sub-temp">&nbsp;</div>
+    </div>
+    <div class="card c-orange">
+      <div class="card-label">Terakhir Dikirim</div>
+      <div style="display:flex;align-items:baseline;gap:6px">
+        <span class="card-value" style="font-size:1.3rem" id="v-last">--</span>
+      </div>
+      <div class="card-sub" id="sub-last">&nbsp;</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="section">
+      <div class="stitle" id="chart-title">Grafik Real-time</div>
+      <canvas id="chart" height="220"></canvas>
+    </div>
+    <div class="section">
+      <div class="stitle">Gauge Terkini</div>
+      <div class="gauges">
+        <div>
+          <div class="gauge-label"><span>Water Level</span><span id="g-wl">-- cm</span></div>
+          <div class="gauge-bar"><div class="gauge-fill" id="gf-wl" style="width:0%;background:var(--blue)"></div></div>
+        </div>
+        <div>
+          <div class="gauge-label"><span>Suhu</span><span id="g-temp">-- °C</span></div>
+          <div class="gauge-bar"><div class="gauge-fill" id="gf-temp" style="width:0%;background:var(--teal)"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-bottom:20px">
+    <div class="table-header">
+      <div class="stitle">Riwayat Data</div>
+      <button type="button" class="btn-csv" onclick="exportCSV()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export CSV
+      </button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Waktu</th>
+            <th>Device</th>
+            <th>Water Level (cm)</th>
+            <th>Suhu (°C)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="5" class="empty">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span id="meta">Belum ada data</span>
+    <span>Kopi Monitor &mdash; project.insamo.id/kopi</span>
+  </div>
+</div>
+
+<script>
+  let allData      = [];
+  let devices      = [];
+  let activeDevice = null;
+  let timer        = null;
+  let interval     = 30000;
+
+  const chart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Water Level (cm)', data: [], borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.08)',  tension: .4, fill: true, pointRadius: 2, pointHoverRadius: 5, yAxisID: 'yWL' },
+        { label: 'Suhu (°C)',        data: [], borderColor: '#2dd4bf', backgroundColor: 'rgba(45,212,191,.08)',  tension: .4, fill: true, pointRadius: 2, pointHoverRadius: 5, yAxisID: 'yTemp' },
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 300 },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend:  { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } },
+        tooltip: { backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1, titleColor: '#e2e8f0', bodyColor: '#94a3b8' }
+      },
+      scales: {
+        x:     { ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 10 }, grid: { color: '#1e293b' } },
+        yWL:   { type: 'linear', position: 'left',  ticks: { color: '#38bdf8', font: { size: 10 } }, grid: { color: '#334155' }, title: { display: true, text: 'cm', color: '#64748b', font: { size: 10 } } },
+        yTemp: { type: 'linear', position: 'right', ticks: { color: '#2dd4bf', font: { size: 10 } }, grid: { drawOnChartArea: false }, title: { display: true, text: '°C', color: '#64748b', font: { size: 10 } } },
+      }
+    }
+  });
+
+  function fmt(ts) {
+    return new Date(ts).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  function fmtTime(ts) {
+    return new Date(ts).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  function avg(arr, key) {
+    const vals = arr.map(d => d[key]).filter(v => v != null);
+    return vals.length ? (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(2) : '--';
+  }
+  function timeAgo(ts) {
+    const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
+    if (diff < 60)   return `${diff}d lalu`;
+    if (diff < 3600) return `${Math.floor(diff/60)}m lalu`;
+    return `${Math.floor(diff/3600)}j lalu`;
+  }
+
+  // ── Load device list ─────────────────────────────
+  async function loadDevices() {
+    try {
+      const res = await fetch('api/devices');
+      if (!res.ok) throw new Error();
+      devices = await res.json();
+      renderDeviceStrip();
+      if (!activeDevice && devices.length > 0) {
+        selectDevice(devices[0].device_code);
+      }
+    } catch {
+      document.getElementById('info').textContent = 'Gagal memuat daftar device.';
+    }
+  }
+
+  function renderDeviceStrip() {
+    const strip = document.getElementById('device-strip');
+    strip.innerHTML = devices.map(d => {
+      const isActive = d.device_code === activeDevice;
+      const isDummy  = d.is_dummy;
+      const wl   = d.last_wl   != null ? d.last_wl.toFixed(2) + ' cm' : '--';
+      const temp = d.last_temp != null ? d.last_temp.toFixed(1) + ' °C' : '--';
+      return `<div class="dev-card${isActive ? ' active' : ''}" onclick="selectDevice('${d.device_code}')">
+        <div class="dev-name">${d.name}</div>
+        <div class="dev-loc">${d.location || d.device_code} &nbsp;
+          <span class="${isDummy ? 'badge-dummy' : 'badge-real'}" style="font-size:.6rem;padding:1px 5px;border-radius:4px;
+            background:${isDummy ? 'rgba(100,116,139,.3)' : 'rgba(34,197,94,.15)'};
+            color:${isDummy ? '#64748b' : '#22c55e'}">
+            ${isDummy ? 'DUMMY' : 'REAL'}
+          </span>
+        </div>
+        <div class="dev-vals">
+          <div class="dev-val">WL: <span style="color:#38bdf8">${wl}</span></div>
+          <div class="dev-val">T: <span style="color:#2dd4bf">${temp}</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function selectDevice(code) {
+    activeDevice = code;
+    renderDeviceStrip();
+    fetchReadings();
+  }
+
+  // ── Load readings for active device ──────────────
+  async function fetchReadings() {
+    if (!activeDevice) return;
+    try {
+      const res = await fetch(`api/sensor-readings?device_code=${activeDevice}&limit=144`);
+      if (!res.ok) throw new Error();
+      allData = await res.json();
+      renderReadings();
+      setStatus(true);
+    } catch {
+      setStatus(false);
+    }
+  }
+
+  function setStatus(ok) {
+    document.getElementById('badge').textContent = ok ? 'LIVE' : 'OFFLINE';
+    document.getElementById('badge').className   = 'badge ' + (ok ? 'live' : 'offline');
+    document.getElementById('dot').className     = 'status-dot' + (ok ? '' : ' off');
+  }
+
+  function renderReadings() {
+    if (!allData.length) return;
+    const lat = allData[allData.length - 1];
+
+    const dev = devices.find(d => d.device_code === activeDevice);
+    document.getElementById('chart-title').textContent =
+      `Grafik Real-time — ${dev ? dev.name : activeDevice}`;
+
+    document.getElementById('v-wl').textContent   = lat.water_level != null ? lat.water_level.toFixed(2) : '--';
+    document.getElementById('v-temp').textContent = lat.temperature != null ? lat.temperature.toFixed(1) : '--';
+    document.getElementById('v-last').textContent = fmtTime(lat.recorded_at);
+
+    document.getElementById('sub-wl').textContent   = `Rata-rata: ${avg(allData, 'water_level')} cm`;
+    document.getElementById('sub-temp').textContent = `Rata-rata: ${avg(allData, 'temperature')} °C`;
+    document.getElementById('sub-last').textContent = timeAgo(lat.recorded_at);
+
+    const wlVal   = lat.water_level != null ? lat.water_level : 0;
+    const tempVal = lat.temperature != null ? lat.temperature : 0;
+    document.getElementById('g-wl').textContent    = wlVal.toFixed(2) + ' cm';
+    document.getElementById('g-temp').textContent  = tempVal.toFixed(1) + ' °C';
+    document.getElementById('gf-wl').style.width   = Math.min(wlVal / 100 * 100, 100) + '%';
+    document.getElementById('gf-temp').style.width = Math.min((tempVal - 20) / 20 * 100, 100) + '%';
+
+    chart.data.labels              = allData.map(d => fmt(d.recorded_at));
+    chart.data.datasets[0].data   = allData.map(d => d.water_level);
+    chart.data.datasets[1].data   = allData.map(d => d.temperature);
+    chart.update();
+
+    document.getElementById('tbody').innerHTML = [...allData].reverse().map((d, i) => {
+      const no = allData.length - i;
+      return `<tr>
+        <td style="color:var(--muted)">${no}</td>
+        <td>${fmt(d.recorded_at)}</td>
+        <td style="color:var(--muted);font-size:.72rem">${d.device_code}</td>
+        <td><span class="pill blue">${d.water_level != null ? d.water_level.toFixed(2) : '--'} cm</span></td>
+        <td><span class="pill teal">${d.temperature != null ? d.temperature.toFixed(1) : '--'} °C</span></td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('meta').textContent =
+      `Update terakhir: ${new Date().toLocaleTimeString('id-ID')}  |  Total data: ${allData.length}`;
+    document.getElementById('info').textContent =
+      `Data terbaru: ${fmt(lat.recorded_at)}`;
+  }
+
+  function exportCSV() {
+    if (!allData.length) return alert('Belum ada data!');
+    let csv = 'No,Waktu,Device,Water Level (cm),Suhu (C)\n';
+    allData.forEach((d, i) => {
+      csv += `${i+1},"${fmt(d.recorded_at)}","${d.device_code}",${d.water_level ?? ''},${d.temperature ?? ''}\n`;
+    });
+    const a = document.createElement('a');
+    a.href     = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    a.download = `kopi_${activeDevice}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+
+  function changeInterval() {
+    interval = parseInt(document.getElementById('isel').value);
+    clearInterval(timer);
+    startLoop();
+  }
+
+  async function tick() {
+    await loadDevices();
+    await fetchReadings();
+  }
+
+  function startLoop() {
+    timer = setInterval(tick, interval);
+  }
+
+  tick();
+  startLoop();
+</script>
+</body>
+</html>
