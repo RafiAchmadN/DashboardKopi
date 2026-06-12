@@ -9,10 +9,10 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:      #0f172a; --surface: #1e293b; --surface2: #263148;
-      --border:  #334155; --muted:   #64748b; --text:    #e2e8f0;
-      --blue:    #38bdf8; --orange:  #fb923c; --purple:  #a78bfa;
-      --green:   #22c55e; --red:     #ef4444;
+      --bg:     #0f172a; --surface: #1e293b; --surface2: #263148;
+      --border: #334155; --muted:   #64748b; --text:    #e2e8f0;
+      --blue:   #38bdf8; --orange:  #fb923c; --teal:    #2dd4bf;
+      --purple: #a78bfa; --green:   #22c55e; --red:     #ef4444;
     }
     body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
@@ -21,7 +21,6 @@
       padding: 12px 24px; display: flex; justify-content: space-between;
       align-items: center; position: sticky; top: 0; z-index: 20;
     }
-    .h-logo { display: flex; align-items: center; gap: 10px; }
     header h1 { font-size: 1rem; font-weight: 700; }
     .h-right { display: flex; align-items: center; gap: 10px; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: blink 1.4s infinite; }
@@ -47,33 +46,35 @@
     .container { max-width: 1280px; margin: 0 auto; padding: 20px 24px; }
 
     /* Device Strip */
-    .device-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
-    @media (max-width: 640px) { .device-strip { grid-template-columns: 1fr; } }
+    .device-strip { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
     .dev-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color .15s;
+      border-radius: 10px; padding: 12px 16px; cursor: pointer; transition: border-color .15s;
+      min-width: 220px;
     }
-    .dev-card:hover { border-color: var(--blue); }
+    .dev-card:hover  { border-color: var(--blue); }
     .dev-card.active { border-color: var(--blue); background: var(--surface2); }
-    .dev-name { font-size: .82rem; font-weight: 700; margin-bottom: 2px; }
+    .dev-name { font-size: .85rem; font-weight: 700; margin-bottom: 2px; }
     .dev-loc  { font-size: .68rem; color: var(--muted); margin-bottom: 8px; }
-    .dev-vals { display: flex; gap: 10px; flex-wrap: wrap; }
-    .dev-val  { font-size: .75rem; }
+    .dev-vals { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .dev-val  { font-size: .72rem; }
     .dev-val span { font-weight: 700; }
 
-    /* Cards */
-    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
-    @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }
+    /* Cards — 4 kolom */
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
     .card-label { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
-    .card-value { font-size: 2.4rem; font-weight: 700; line-height: 1; }
+    .card-value { font-size: 2.2rem; font-weight: 700; line-height: 1; }
     .card-unit  { font-size: .85rem; color: var(--muted); margin-left: 3px; }
     .card-sub   { font-size: .72rem; color: var(--muted); margin-top: 6px; }
     .c-blue   .card-value { color: var(--blue); }
     .c-orange .card-value { color: var(--orange); }
+    .c-teal   .card-value { color: var(--teal); }
     .c-purple .card-value { color: var(--purple); }
 
-    /* Charts Row */
+    /* Charts */
     .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 20px; }
     @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
     .section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
@@ -81,10 +82,10 @@
     canvas { display: block; width: 100% !important; }
 
     /* Gauges */
-    .gauges { display: flex; flex-direction: column; gap: 18px; justify-content: center; height: calc(100% - 30px); }
-    .gauge-label { font-size: .72rem; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .gauges { display: flex; flex-direction: column; gap: 14px; justify-content: center; height: calc(100% - 30px); }
+    .gauge-label { font-size: .72rem; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
     .gauge-label span:last-child { color: var(--text); font-weight: 600; }
-    .gauge-bar  { height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .gauge-bar  { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
     .gauge-fill { height: 100%; border-radius: 999px; transition: width .5s ease; }
 
     /* Table */
@@ -109,6 +110,7 @@
     .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 600; }
     .pill.blue   { background: rgba(56,189,248,.15);  color: var(--blue); }
     .pill.orange { background: rgba(251,146,60,.15);  color: var(--orange); }
+    .pill.teal   { background: rgba(45,212,191,.15);  color: var(--teal); }
     .pill.purple { background: rgba(167,139,250,.15); color: var(--purple); }
 
     .footer { font-size: .72rem; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
@@ -118,9 +120,7 @@
 <body>
 
 <header>
-  <div class="h-logo">
-    <h1>&#9749; Kopi Monitor Dashboard</h1>
-  </div>
+  <h1>&#9749; Kopi Monitor Dashboard</h1>
   <div class="h-right">
     <div class="status-dot" id="dot"></div>
     <span class="badge wait" id="badge">MEMUAT...</span>
@@ -143,21 +143,27 @@
 
 <div class="container">
 
+  <!-- 4 kartu sensor -->
   <div class="cards">
     <div class="card c-blue">
-      <div class="card-label">Suhu Luar</div>
-      <div><span class="card-value" id="v-luar">--</span><span class="card-unit">°C</span></div>
-      <div class="card-sub" id="sub-luar">&nbsp;</div>
+      <div class="card-label">Suhu 1</div>
+      <div><span class="card-value" id="v-s1">--</span><span class="card-unit">°C</span></div>
+      <div class="card-sub" id="sub-s1">&nbsp;</div>
     </div>
     <div class="card c-orange">
-      <div class="card-label">Suhu Dalam</div>
-      <div><span class="card-value" id="v-dalam">--</span><span class="card-unit">°C</span></div>
-      <div class="card-sub" id="sub-dalam">&nbsp;</div>
+      <div class="card-label">Suhu 2</div>
+      <div><span class="card-value" id="v-s2">--</span><span class="card-unit">°C</span></div>
+      <div class="card-sub" id="sub-s2">&nbsp;</div>
+    </div>
+    <div class="card c-teal">
+      <div class="card-label">Kelembapan 1</div>
+      <div><span class="card-value" id="v-k1">--</span><span class="card-unit">%</span></div>
+      <div class="card-sub" id="sub-k1">&nbsp;</div>
     </div>
     <div class="card c-purple">
-      <div class="card-label">Kelembapan</div>
-      <div><span class="card-value" id="v-lembap">--</span><span class="card-unit">%</span></div>
-      <div class="card-sub" id="sub-lembap">&nbsp;</div>
+      <div class="card-label">Kelembapan 2</div>
+      <div><span class="card-value" id="v-k2">--</span><span class="card-unit">%</span></div>
+      <div class="card-sub" id="sub-k2">&nbsp;</div>
     </div>
   </div>
 
@@ -170,16 +176,20 @@
       <div class="stitle">Gauge Terkini</div>
       <div class="gauges">
         <div>
-          <div class="gauge-label"><span>Suhu Luar</span><span id="g-luar">-- °C</span></div>
-          <div class="gauge-bar"><div class="gauge-fill" id="gf-luar" style="width:0%;background:var(--blue)"></div></div>
+          <div class="gauge-label"><span>Suhu 1</span><span id="g-s1">-- °C</span></div>
+          <div class="gauge-bar"><div class="gauge-fill" id="gf-s1" style="width:0%;background:var(--blue)"></div></div>
         </div>
         <div>
-          <div class="gauge-label"><span>Suhu Dalam</span><span id="g-dalam">-- °C</span></div>
-          <div class="gauge-bar"><div class="gauge-fill" id="gf-dalam" style="width:0%;background:var(--orange)"></div></div>
+          <div class="gauge-label"><span>Suhu 2</span><span id="g-s2">-- °C</span></div>
+          <div class="gauge-bar"><div class="gauge-fill" id="gf-s2" style="width:0%;background:var(--orange)"></div></div>
         </div>
         <div>
-          <div class="gauge-label"><span>Kelembapan</span><span id="g-lembap">-- %</span></div>
-          <div class="gauge-bar"><div class="gauge-fill" id="gf-lembap" style="width:0%;background:var(--purple)"></div></div>
+          <div class="gauge-label"><span>Kelembapan 1</span><span id="g-k1">-- %</span></div>
+          <div class="gauge-bar"><div class="gauge-fill" id="gf-k1" style="width:0%;background:var(--teal)"></div></div>
+        </div>
+        <div>
+          <div class="gauge-label"><span>Kelembapan 2</span><span id="g-k2">-- %</span></div>
+          <div class="gauge-bar"><div class="gauge-fill" id="gf-k2" style="width:0%;background:var(--purple)"></div></div>
         </div>
       </div>
     </div>
@@ -202,12 +212,12 @@
         <thead>
           <tr>
             <th>#</th><th>Waktu</th><th>Device</th>
-            <th>Suhu Luar (°C)</th><th>Suhu Dalam (°C)</th>
-            <th>Kelembapan (%)</th><th>Status</th>
+            <th>Suhu 1 (°C)</th><th>Suhu 2 (°C)</th>
+            <th>Kelembapan 1 (%)</th><th>Kelembapan 2 (%)</th>
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr><td colspan="7" class="empty">Memuat data...</td></tr>
+          <tr><td colspan="7" class="empty">Menunggu data dari ESP32...</td></tr>
         </tbody>
       </table>
     </div>
@@ -231,9 +241,10 @@
     data: {
       labels: [],
       datasets: [
-        { label: 'Suhu Luar (°C)',  data: [], borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.08)',  tension: .4, fill: true, pointRadius: 2, pointHoverRadius: 5 },
-        { label: 'Suhu Dalam (°C)', data: [], borderColor: '#fb923c', backgroundColor: 'rgba(251,146,60,.08)',  tension: .4, fill: true, pointRadius: 2, pointHoverRadius: 5 },
-        { label: 'Kelembapan (%)',  data: [], borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.08)', tension: .4, fill: true, pointRadius: 2, pointHoverRadius: 5 },
+        { label: 'Suhu 1 (°C)',       data: [], borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.08)',  tension: .4, fill: true, pointRadius: 2 },
+        { label: 'Suhu 2 (°C)',       data: [], borderColor: '#fb923c', backgroundColor: 'rgba(251,146,60,.08)',  tension: .4, fill: true, pointRadius: 2 },
+        { label: 'Kelembapan 1 (%)', data: [], borderColor: '#2dd4bf', backgroundColor: 'rgba(45,212,191,.08)',  tension: .4, fill: true, pointRadius: 2 },
+        { label: 'Kelembapan 2 (%)', data: [], borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.08)', tension: .4, fill: true, pointRadius: 2 },
       ]
     },
     options: {
@@ -254,23 +265,9 @@
   function fmt(ts) {
     return new Date(ts).toLocaleString('id-ID', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
   }
-  function fmtTime(ts) {
-    return new Date(ts).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  }
   function avg(arr, key) {
     const vals = arr.map(d => d[key]).filter(v => v != null);
     return vals.length ? (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1) : '--';
-  }
-  function timeAgo(ts) {
-    const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
-    if (diff < 60)   return `${diff}d lalu`;
-    if (diff < 3600) return `${Math.floor(diff/60)}m lalu`;
-    return `${Math.floor(diff/3600)}j lalu`;
-  }
-  function statusLabel(d) {
-    if (d.suhu_dalam >= 40)  return '<span style="color:var(--red);font-weight:600">&#9888; Panas</span>';
-    if (d.kelembapan >= 70)  return '<span style="color:var(--purple);font-weight:600">&#128167; Lembap</span>';
-    return '<span style="color:var(--green);font-weight:600">&#10003; Normal</span>';
   }
 
   async function loadDevices() {
@@ -288,21 +285,18 @@
   function renderDeviceStrip() {
     document.getElementById('device-strip').innerHTML = devices.map(d => {
       const isActive = d.device_code === activeDevice;
-      const luar  = d.last_suhu_luar  != null ? d.last_suhu_luar.toFixed(1)  + ' °C' : '--';
-      const dalam = d.last_suhu_dalam != null ? d.last_suhu_dalam.toFixed(1) + ' °C' : '--';
-      const lembap = d.last_kelembapan != null ? d.last_kelembapan.toFixed(1) + ' %' : '--';
-      const badgeStyle = d.is_dummy
-        ? 'background:rgba(100,116,139,.3);color:#64748b'
-        : 'background:rgba(34,197,94,.15);color:#22c55e';
+      const s1 = d.suhu1 != null ? d.suhu1.toFixed(1) + ' °C' : '--';
+      const s2 = d.suhu2 != null ? d.suhu2.toFixed(1) + ' °C' : '--';
+      const k1 = d.kelembapan1 != null ? d.kelembapan1.toFixed(1) + ' %' : '--';
+      const k2 = d.kelembapan2 != null ? d.kelembapan2.toFixed(1) + ' %' : '--';
       return `<div class="dev-card${isActive ? ' active' : ''}" onclick="selectDevice('${d.device_code}')">
         <div class="dev-name">${d.name}</div>
-        <div class="dev-loc">${d.location || d.device_code}
-          <span style="font-size:.6rem;padding:1px 5px;border-radius:4px;${badgeStyle}">${d.is_dummy ? 'DUMMY' : 'REAL'}</span>
-        </div>
+        <div class="dev-loc">${d.location || d.device_code}</div>
         <div class="dev-vals">
-          <div class="dev-val">Luar: <span style="color:var(--blue)">${luar}</span></div>
-          <div class="dev-val">Dalam: <span style="color:var(--orange)">${dalam}</span></div>
-          <div class="dev-val">Lembap: <span style="color:var(--purple)">${lembap}</span></div>
+          <div class="dev-val">S1: <span style="color:var(--blue)">${s1}</span></div>
+          <div class="dev-val">S2: <span style="color:var(--orange)">${s2}</span></div>
+          <div class="dev-val">K1: <span style="color:var(--teal)">${k1}</span></div>
+          <div class="dev-val">K2: <span style="color:var(--purple)">${k2}</span></div>
         </div>
       </div>`;
     }).join('');
@@ -333,31 +327,38 @@
     document.getElementById('dot').className     = 'status-dot' + (ok ? '' : ' off');
   }
 
+  function val(v, dec = 1) { return v != null ? Number(v).toFixed(dec) : '--'; }
+
   function renderReadings() {
     if (!allData.length) return;
     const lat = allData[allData.length - 1];
     const dev = devices.find(d => d.device_code === activeDevice);
     document.getElementById('chart-title').textContent = `Grafik Real-time — ${dev ? dev.name : activeDevice}`;
 
-    document.getElementById('v-luar').textContent   = lat.suhu_luar  != null ? lat.suhu_luar.toFixed(1)  : '--';
-    document.getElementById('v-dalam').textContent  = lat.suhu_dalam != null ? lat.suhu_dalam.toFixed(1) : '--';
-    document.getElementById('v-lembap').textContent = lat.kelembapan != null ? lat.kelembapan.toFixed(1) : '--';
+    document.getElementById('v-s1').textContent = val(lat.suhu1);
+    document.getElementById('v-s2').textContent = val(lat.suhu2);
+    document.getElementById('v-k1').textContent = val(lat.kelembapan1);
+    document.getElementById('v-k2').textContent = val(lat.kelembapan2);
 
-    document.getElementById('sub-luar').textContent   = `Rata-rata: ${avg(allData, 'suhu_luar')} °C`;
-    document.getElementById('sub-dalam').textContent  = `Rata-rata: ${avg(allData, 'suhu_dalam')} °C`;
-    document.getElementById('sub-lembap').textContent = `Rata-rata: ${avg(allData, 'kelembapan')} %`;
+    document.getElementById('sub-s1').textContent = `Rata-rata: ${avg(allData, 'suhu1')} °C`;
+    document.getElementById('sub-s2').textContent = `Rata-rata: ${avg(allData, 'suhu2')} °C`;
+    document.getElementById('sub-k1').textContent = `Rata-rata: ${avg(allData, 'kelembapan1')} %`;
+    document.getElementById('sub-k2').textContent = `Rata-rata: ${avg(allData, 'kelembapan2')} %`;
 
-    document.getElementById('g-luar').textContent    = (lat.suhu_luar  ?? '--') + ' °C';
-    document.getElementById('g-dalam').textContent   = (lat.suhu_dalam ?? '--') + ' °C';
-    document.getElementById('g-lembap').textContent  = (lat.kelembapan ?? '--') + ' %';
-    document.getElementById('gf-luar').style.width   = Math.min((lat.suhu_luar  ?? 0) / 60 * 100, 100) + '%';
-    document.getElementById('gf-dalam').style.width  = Math.min((lat.suhu_dalam ?? 0) / 60 * 100, 100) + '%';
-    document.getElementById('gf-lembap').style.width = Math.min(lat.kelembapan ?? 0, 100) + '%';
+    document.getElementById('g-s1').textContent = val(lat.suhu1) + ' °C';
+    document.getElementById('g-s2').textContent = val(lat.suhu2) + ' °C';
+    document.getElementById('g-k1').textContent = val(lat.kelembapan1) + ' %';
+    document.getElementById('g-k2').textContent = val(lat.kelembapan2) + ' %';
+    document.getElementById('gf-s1').style.width = Math.min((lat.suhu1  ?? 0) / 60 * 100, 100) + '%';
+    document.getElementById('gf-s2').style.width = Math.min((lat.suhu2  ?? 0) / 60 * 100, 100) + '%';
+    document.getElementById('gf-k1').style.width = Math.min(lat.kelembapan1 ?? 0, 100) + '%';
+    document.getElementById('gf-k2').style.width = Math.min(lat.kelembapan2 ?? 0, 100) + '%';
 
-    chart.data.labels              = allData.map(d => fmt(d.recorded_at));
-    chart.data.datasets[0].data   = allData.map(d => d.suhu_luar);
-    chart.data.datasets[1].data   = allData.map(d => d.suhu_dalam);
-    chart.data.datasets[2].data   = allData.map(d => d.kelembapan);
+    chart.data.labels             = allData.map(d => fmt(d.recorded_at));
+    chart.data.datasets[0].data  = allData.map(d => d.suhu1);
+    chart.data.datasets[1].data  = allData.map(d => d.suhu2);
+    chart.data.datasets[2].data  = allData.map(d => d.kelembapan1);
+    chart.data.datasets[3].data  = allData.map(d => d.kelembapan2);
     chart.update();
 
     document.getElementById('tbody').innerHTML = [...allData].reverse().map((d, i) => {
@@ -366,10 +367,10 @@
         <td style="color:var(--muted)">${no}</td>
         <td>${fmt(d.recorded_at)}</td>
         <td style="color:var(--muted);font-size:.72rem">${d.device_code}</td>
-        <td><span class="pill blue">${d.suhu_luar  != null ? d.suhu_luar.toFixed(1)  : '--'} °C</span></td>
-        <td><span class="pill orange">${d.suhu_dalam != null ? d.suhu_dalam.toFixed(1) : '--'} °C</span></td>
-        <td><span class="pill purple">${d.kelembapan != null ? d.kelembapan.toFixed(1) : '--'} %</span></td>
-        <td style="font-size:.72rem">${statusLabel(d)}</td>
+        <td><span class="pill blue">${val(d.suhu1)} °C</span></td>
+        <td><span class="pill orange">${val(d.suhu2)} °C</span></td>
+        <td><span class="pill teal">${val(d.kelembapan1)} %</span></td>
+        <td><span class="pill purple">${val(d.kelembapan2)} %</span></td>
       </tr>`;
     }).join('');
 
@@ -380,10 +381,9 @@
 
   function exportCSV() {
     if (!allData.length) return alert('Belum ada data!');
-    let csv = 'No,Waktu,Device,Suhu Luar (C),Suhu Dalam (C),Kelembapan (%),Status\n';
+    let csv = 'No,Waktu,Device,Suhu 1 (C),Suhu 2 (C),Kelembapan 1 (%),Kelembapan 2 (%)\n';
     allData.forEach((d, i) => {
-      const st = d.suhu_dalam >= 40 ? 'Panas' : d.kelembapan >= 70 ? 'Lembap' : 'Normal';
-      csv += `${i+1},"${fmt(d.recorded_at)}","${d.device_code}",${d.suhu_luar ?? ''},${d.suhu_dalam ?? ''},${d.kelembapan ?? ''},${st}\n`;
+      csv += `${i+1},"${fmt(d.recorded_at)}","${d.device_code}",${d.suhu1 ?? ''},${d.suhu2 ?? ''},${d.kelembapan1 ?? ''},${d.kelembapan2 ?? ''}\n`;
     });
     const a = document.createElement('a');
     a.href     = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
@@ -397,14 +397,8 @@
     startLoop();
   }
 
-  async function tick() {
-    await loadDevices();
-    await fetchReadings();
-  }
-
-  function startLoop() {
-    timer = setInterval(tick, interval);
-  }
+  async function tick() { await loadDevices(); await fetchReadings(); }
+  function startLoop() { timer = setInterval(tick, interval); }
 
   tick();
   startLoop();
