@@ -67,32 +67,6 @@ app.get('/api/sensor-readings', (req, res) => {
   res.json(rows.reverse());
 });
 
-// ── Simulasi data dummy setiap 30 detik ──────────────────────────────────
-// Range mengikuti nilai asli sensor Kopi
-const DUMMY_CONFIG = {
-  'DUMMY-001': { luarBase: 30, dalamBase: 37, lembapBase: 65 },
-  'DUMMY-002': { luarBase: 29, dalamBase: 36, lembapBase: 63 },
-  'DUMMY-003': { luarBase: 31, dalamBase: 39, lembapBase: 67 },
-};
-
-const insertReading = db.prepare(
-  `INSERT INTO sensor_readings (device_code, suhu_luar, suhu_dalam, kelembapan, recorded_at) VALUES (?, ?, ?, ?, ?)`
-);
-
-function simulateDummy() {
-  const ts = new Date().toISOString();
-  for (const [code, cfg] of Object.entries(DUMMY_CONFIG)) {
-    const suhuLuar  = +(cfg.luarBase  + (Math.random() - 0.5) * 5).toFixed(1);  // 28–33°C
-    const suhuDalam = +(cfg.dalamBase + (Math.random() - 0.5) * 6).toFixed(1);  // 35–41°C
-    const kelembapan = +(cfg.lembapBase + (Math.random() - 0.5) * 10).toFixed(1); // 60–71%
-    insertReading.run(code, suhuLuar, suhuDalam, kelembapan, ts);
-  }
-  console.log('[SIM] Dummy readings generated:', ts);
-}
-
-simulateDummy();
-setInterval(simulateDummy, 30_000);
-
 // ── Start ─────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`[KOPI] Dashboard: http://localhost:${PORT}`);
