@@ -379,16 +379,25 @@
     document.getElementById('info').textContent = `Data terbaru: ${fmt(lat.recorded_at)}`;
   }
 
-  function exportCSV() {
-    if (!allData.length) return alert('Belum ada data!');
-    let csv = 'No,Waktu,Device,Suhu 1 (C),Suhu 2 (C),Kelembapan 1 (%),Kelembapan 2 (%)\n';
-    allData.forEach((d, i) => {
-      csv += `${i+1},"${fmt(d.recorded_at)}","${d.device_code}",${d.suhu1 ?? ''},${d.suhu2 ?? ''},${d.kelembapan1 ?? ''},${d.kelembapan2 ?? ''}\n`;
-    });
-    const a = document.createElement('a');
-    a.href     = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-    a.download = `kopi_${activeDevice}_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
+  async function exportCSV() {
+    if (!activeDevice) return alert('Pilih device terlebih dahulu!');
+    const btn = document.querySelector('.btn-csv');
+    btn.textContent = 'Mengunduh...';
+    btn.disabled = true;
+    try {
+      const res = await fetch(`api/export-csv?device_code=${activeDevice}`);
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href     = URL.createObjectURL(blob);
+      a.download = `kopi_${activeDevice}_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    } catch {
+      alert('Gagal mengunduh CSV!');
+    } finally {
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV`;
+      btn.disabled = false;
+    }
   }
 
   function changeInterval() {
