@@ -66,6 +66,32 @@ app.get('/api/sensor-readings', (req, res) => {
   res.json(rows.reverse());
 });
 
+// ── GET /api/export-csv?device_code=X&from=2024-01-01&to=2024-12-31 ──────
+app.get('/api/export-csv', (req, res) => {
+  const { device_code, from, to } = req.query;
+  if (!device_code) return res.status(400).json({ error: 'device_code wajib diisi' });
+
+  let query = `SELECT id, device_code, suhu1, suhu2, kelembapan1, kelembapan2, recorded_at
+               FROM sensor_readings WHERE device_code = ?`;
+  const params = [device_code];
+
+  if (from) { query += ` AND recorded_at >= ?`; params.push(from); }
+  if (to)   { query += ` AND recorded_at <= ?`; params.push(to + 'T23:59:59'); }
+  query += ` ORDER BY recorded_at ASC`;
+
+  const rows = db.prepare(query).all(...params);
+
+  const header = 'id,device_code,suhu1,suhu2,kelembapan1,kelembapan2,recorded_at\n';
+  const csv = header + rows.map(r =>
+    `${r.id},${r.device_code},${r.suhu1},${r.suhu2},${r.kelembapan1},${r.kelembapan2},${r.recorded_at}`
+  ).join('\n');
+
+  const filename = `kopi_${device_code}_${Date.now()}.csv`;
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(csv);
+});
+
 // ── Start ─────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`[KOPI] Dashboard: http://localhost:${PORT}`);
