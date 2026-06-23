@@ -212,8 +212,8 @@
         <thead>
           <tr>
             <th>#</th><th>Waktu</th><th>Device</th>
-            <th>Suhu 1 (°C)</th><th>Suhu 2 (°C)</th>
-            <th>Kelembapan 1 (%)</th><th>Kelembapan 2 (%)</th>
+            <th>Suhu Bawah (°C)</th><th>Suhu Atas (°C)</th>
+            <th>Kelembapan Bawah (%)</th><th>Kelembapan Atas (%)</th>
           </tr>
         </thead>
         <tbody id="tbody">
@@ -241,10 +241,10 @@
     data: {
       labels: [],
       datasets: [
-        { label: 'Suhu 1 (°C)',       data: [], borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.08)',  tension: .4, fill: true, pointRadius: 2 },
-        { label: 'Suhu 2 (°C)',       data: [], borderColor: '#fb923c', backgroundColor: 'rgba(251,146,60,.08)',  tension: .4, fill: true, pointRadius: 2 },
-        { label: 'Kelembapan 1 (%)', data: [], borderColor: '#2dd4bf', backgroundColor: 'rgba(45,212,191,.08)',  tension: .4, fill: true, pointRadius: 2 },
-        { label: 'Kelembapan 2 (%)', data: [], borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.08)', tension: .4, fill: true, pointRadius: 2 },
+        { label: 'Suhu Bawah (°C)',       data: [], borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.08)',  tension: .4, fill: true, pointRadius: 2 },
+        { label: 'Suhu Atas (°C)',        data: [], borderColor: '#fb923c', backgroundColor: 'rgba(251,146,60,.08)',  tension: .4, fill: true, pointRadius: 2 },
+        { label: 'Kelembapan Bawah (%)', data: [], borderColor: '#2dd4bf', backgroundColor: 'rgba(45,212,191,.08)',  tension: .4, fill: true, pointRadius: 2 },
+        { label: 'Kelembapan Atas (%)',  data: [], borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.08)', tension: .4, fill: true, pointRadius: 2 },
       ]
     },
     options: {
