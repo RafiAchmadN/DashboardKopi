@@ -146,22 +146,22 @@
   <!-- 4 kartu sensor -->
   <div class="cards">
     <div class="card c-blue">
-      <div class="card-label">Suhu 1</div>
+      <div class="card-label">Suhu Bawah</div>
       <div><span class="card-value" id="v-s1">--</span><span class="card-unit">°C</span></div>
       <div class="card-sub" id="sub-s1">&nbsp;</div>
     </div>
     <div class="card c-orange">
-      <div class="card-label">Suhu 2</div>
+      <div class="card-label">Suhu Atas</div>
       <div><span class="card-value" id="v-s2">--</span><span class="card-unit">°C</span></div>
       <div class="card-sub" id="sub-s2">&nbsp;</div>
     </div>
     <div class="card c-teal">
-      <div class="card-label">Kelembapan 1</div>
+      <div class="card-label">Kelembapan Bawah</div>
       <div><span class="card-value" id="v-k1">--</span><span class="card-unit">%</span></div>
       <div class="card-sub" id="sub-k1">&nbsp;</div>
     </div>
     <div class="card c-purple">
-      <div class="card-label">Kelembapan 2</div>
+      <div class="card-label">Kelembapan Atas</div>
       <div><span class="card-value" id="v-k2">--</span><span class="card-unit">%</span></div>
       <div class="card-sub" id="sub-k2">&nbsp;</div>
     </div>
@@ -176,19 +176,19 @@
       <div class="stitle">Gauge Terkini</div>
       <div class="gauges">
         <div>
-          <div class="gauge-label"><span>Suhu 1</span><span id="g-s1">-- °C</span></div>
+          <div class="gauge-label"><span>Suhu Bawah</span><span id="g-s1">-- °C</span></div>
           <div class="gauge-bar"><div class="gauge-fill" id="gf-s1" style="width:0%;background:var(--blue)"></div></div>
         </div>
         <div>
-          <div class="gauge-label"><span>Suhu 2</span><span id="g-s2">-- °C</span></div>
+          <div class="gauge-label"><span>Suhu Atas</span><span id="g-s2">-- °C</span></div>
           <div class="gauge-bar"><div class="gauge-fill" id="gf-s2" style="width:0%;background:var(--orange)"></div></div>
         </div>
         <div>
-          <div class="gauge-label"><span>Kelembapan 1</span><span id="g-k1">-- %</span></div>
+          <div class="gauge-label"><span>Kelembapan Bawah</span><span id="g-k1">-- %</span></div>
           <div class="gauge-bar"><div class="gauge-fill" id="gf-k1" style="width:0%;background:var(--teal)"></div></div>
         </div>
         <div>
-          <div class="gauge-label"><span>Kelembapan 2</span><span id="g-k2">-- %</span></div>
+          <div class="gauge-label"><span>Kelembapan Atas</span><span id="g-k2">-- %</span></div>
           <div class="gauge-bar"><div class="gauge-fill" id="gf-k2" style="width:0%;background:var(--purple)"></div></div>
         </div>
       </div>
@@ -266,7 +266,7 @@
     return new Date(ts).toLocaleString('id-ID', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
   }
   function avg(arr, key) {
-    const vals = arr.map(d => d[key]).filter(v => v != null);
+    const vals = arr.map(d => Number(d[key])).filter(v => !isNaN(v));
     return vals.length ? (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1) : '--';
   }
 
@@ -293,10 +293,10 @@
         <div class="dev-name">${d.name}</div>
         <div class="dev-loc">${d.location || d.device_code}</div>
         <div class="dev-vals">
-          <div class="dev-val">S1: <span style="color:var(--blue)">${s1}</span></div>
-          <div class="dev-val">S2: <span style="color:var(--orange)">${s2}</span></div>
-          <div class="dev-val">K1: <span style="color:var(--teal)">${k1}</span></div>
-          <div class="dev-val">K2: <span style="color:var(--purple)">${k2}</span></div>
+          <div class="dev-val">SB: <span style="color:var(--blue)">${s1}</span></div>
+          <div class="dev-val">SA: <span style="color:var(--orange)">${s2}</span></div>
+          <div class="dev-val">KB: <span style="color:var(--teal)">${k1}</span></div>
+          <div class="dev-val">KA: <span style="color:var(--purple)">${k2}</span></div>
         </div>
       </div>`;
     }).join('');
